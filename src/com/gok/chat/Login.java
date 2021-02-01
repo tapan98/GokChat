@@ -102,10 +102,32 @@ public class Login extends JFrame {
 		JButton btnNewButton = new JButton("Login");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+
+				boolean login = true;
 				String name = txtName.getText();
 				String address = txtAddress.getText();
-				int port = Integer.parseInt(txtPort.getText());
-				login(name, address, port);
+				int port = 0;
+				try {
+
+					port = Integer.parseInt(txtPort.getText());
+
+				} catch (NumberFormatException ex) {
+					
+					login = false;
+
+				}
+				
+				if (name.contains("[") || name.contains("]") || name.isEmpty() || address.isEmpty() ) {
+					
+					//show some error
+					login = false;
+				
+				}
+				
+				if (login) {
+
+					login(name, address, port);
+				}
 			}
 		});
 		btnNewButton.setBounds(97, 230, 89, 23);
