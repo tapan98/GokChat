@@ -20,17 +20,21 @@ public class ClientHandler extends Server {
     private int easterEgg = 0;
     private int connection_timeout = 0;
     private String username;
+    private int UID;
 	
-	public ClientHandler(Socket client, ArrayList<ClientHandler> clientsList, ExecutorService threadpool) throws IOException {
+	public ClientHandler(Socket client, ArrayList<ClientHandler> clientsList, ExecutorService threadpool, int uid) throws IOException {
 
 		this.client = client;
         this.clientsList = clientsList;
         this.threadpool = threadpool;
+        this.UID = uid;
 
         receiver = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
         sender = new PrintWriter(client.getOutputStream(), true);
 
         running = true;
+
+        
 	}
 
 	@Override
@@ -49,7 +53,7 @@ public class ClientHandler extends Server {
             			
             			try {Thread.sleep(5000);} catch (InterruptedException e) {}
             			
-            			if (connection_timeout > 2) { // connection assumed to be lost
+            			if (connection_timeout > 3) { // connection assumed to be lost
                             running = false;
             			}
             			else { // ping client
@@ -136,7 +140,7 @@ public class ClientHandler extends Server {
                     } else if (request.startsWith("[JYN]")) {
 
                         username = request.substring(request.indexOf(']')+1);
-                        serverMessage("Client " + username + "@" + client.getInetAddress() + " connected.");
+                        serverMessage("Client " + username + "[" +UID+ "]" + "@" + client.getInetAddress() + " connected.");
                         sayToAll(request);
 
                     } else if( request.equalsIgnoreCase("Hello") ) {
@@ -148,8 +152,9 @@ public class ClientHandler extends Server {
                 }
             }
             
-            serverMessage("Client " + username + "@" + client.getInetAddress() + " has disconnected.");
-                
+            serverMessage("Client " + username + "[" +UID+ "]" + "@" + client.getInetAddress() + " has disconnected.");
+            
+            sayToAll("[DISC]" + username);
             } catch (SocketException e) {
                 
             serverMessage("Exception: Client has probably disconnected");
@@ -191,7 +196,6 @@ public class ClientHandler extends Server {
 
         for (ClientHandler client : clientsList) {   
             
-
             client.sender.println(msg);
         }
     }
