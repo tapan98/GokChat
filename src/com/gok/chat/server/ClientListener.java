@@ -39,9 +39,9 @@ public class ClientListener extends Server implements Runnable {
 
                 //serverMessage(client.getInetAddress() + " connected.");
 
-                ClientHandler clientThread = new ClientHandler(client, clientsList, threadpool);
+                ClientHandler clientThread = new ClientHandler(client, clientsList, threadpool, clientsList.size());
 
-                clientsList.add(clientThread);
+                addToClientsList(clientThread);
                 threadpool.execute(clientThread);
             }
 
@@ -55,5 +55,9 @@ public class ClientListener extends Server implements Runnable {
         }
 	}
 
+    protected synchronized void addToClientsList(ClientHandler handle) {
+
+        clientsList.add(handle);
+    }
 	
 }
