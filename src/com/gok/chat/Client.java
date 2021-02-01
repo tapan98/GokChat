@@ -64,6 +64,7 @@ public class Client extends JFrame {
 		
 		if (connected) {
 			
+			setTitle( name + "@" + address + ":" + port + " - Gok Chat Client");
 			
 			/**
 			 * appends server responses to the history text field
@@ -209,7 +210,12 @@ public class Client extends JFrame {
 
 			String username = msg.substring(msg.indexOf(']')+1);
 
-			history.append("\n" + username + " has joined the server");
+			history.append("\n" + username + " has joined the server.");
+		} else if (msg.startsWith("[DISC]")) { // user disconnected
+
+			String username = msg.substring(msg.indexOf(']')+1);
+
+			history.append("\n" + username + " left the server.");
 		}
 		else {
 			history.append("\n[SERVER RESPONSE]: " + msg);
