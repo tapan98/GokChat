@@ -1,20 +1,22 @@
+
 package com.gok.chat.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
-import java.net.SocketException;
-import java.rmi.ServerError;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ *
+ * @author Tapan
+ */
 public class Server implements Runnable {
-
-	protected int port;
+    
+    protected int port;
 	protected int maxThreadPool = 10;
 	
 	protected ArrayList<ClientHandler> clientsList;
@@ -88,9 +90,6 @@ public class Server implements Runnable {
                 }else if (command.equals("/shutdown") || command.equals("/q")) {
                     running = false;
 
-                }else if (command.equals("/clients")) {
-                    serverMessage("Clients: "+clientsList.size());
-
                 }else if (command.equals("/port")) {
                     serverMessage(""+port);
 
@@ -155,7 +154,6 @@ public class Server implements Runnable {
         System.out.println("/help: displays this help");
         System.out.println("/shutdown or /q: quits the server");
         System.out.println("/port: displays server port");
-        System.out.println("/clients: displays number of connected clients");
     }
 	
 	protected synchronized void serverError(String msg) {
