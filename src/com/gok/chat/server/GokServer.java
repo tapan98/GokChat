@@ -13,23 +13,20 @@ public class GokServer {
     
     public static void main(String[] args) {
 		
-		int port;
-		
-                // --------- UNCOMMENT THIS ---------
-//		if (args.length != 1) {
-//			System.out.println("Usage: java ServerMain PORT");
-//			return;
-//		}
-//		
-//		port = Integer.parseInt(args[0]);
-                // ----------------------------------
-                
-                
-                
-                // --------- REMOVE THIS ---------
-                port = 8080;
-                // -------------------------------
+		int port = 8080;
 
+		if (args.length != 1) {
+                    
+			System.out.println("Usage: java GokServer [PORT]");
+                        System.out.println("Using default port: 8080");
+
+		} else {
+                    
+                    port = Integer.parseInt(args[0]);
+
+                }
+		
+                
 		Thread server = new Thread(new Server(port));
 		
 		server.start();

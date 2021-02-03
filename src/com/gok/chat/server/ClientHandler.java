@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.gok.chat.server;
 
 import java.io.BufferedReader;
@@ -15,10 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 
-/**
- *
- * @author newboi
- */
+
 public class ClientHandler extends Server {
     
     private Socket client;
@@ -172,11 +165,6 @@ public class ClientHandler extends Server {
                     } else if (request.startsWith("[MSG]")) {
 
                         sayToAll(request);
-
-                    } else if (request.equalsIgnoreCase("Hello")) {
-
-                        easterEgg = 0;
-                        sender.println("Hellow :)");
 
                     }
                 }

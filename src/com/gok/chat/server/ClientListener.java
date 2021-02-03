@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.gok.chat.server;
 
 import java.io.IOException;
@@ -12,10 +8,6 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 
-/**
- *
- * @author newboi
- */
 public class ClientListener extends Server {
 
     ClientListener(ServerSocket listener, ArrayList<ClientHandler> clientsList, ExecutorService pool, int port) {

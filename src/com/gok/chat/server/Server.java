@@ -10,10 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- *
- * @author Tapan
- */
 public class Server implements Runnable {
     
     protected int port;
@@ -161,7 +157,7 @@ public class Server implements Runnable {
 		System.err.println("[ERROR]" + msg);
 	}
 	
-	protected synchronized void serverMessage(String msg) { // prints server info messages aka logs?
+	protected synchronized void serverMessage(String msg) {
 
         System.out.println("[INFO]: " + msg);
     }
