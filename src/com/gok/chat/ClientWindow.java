@@ -1,24 +1,31 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.gok.chat;
 
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import javax.swing.text.DefaultCaret;
+
+import java.time.format.DateTimeFormatter;
 
 /**
  * GUI for the Client
- * @author Tapan
  */
 public class ClientWindow extends javax.swing.JFrame implements Runnable {
 
     private int mouseX;
     private int mouseY;
+    private DefaultCaret caret;
     
     final private PrintWriter sender;
     final private String username;
+    private DateTimeFormatter timeFormat;
+    private LocalDateTime timeNow;
+    private boolean timestamp = true;
     
     /**
      * Front-end client
@@ -31,6 +38,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         this.username = name;
         
         initComponents();
+        caret = (DefaultCaret)history.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        
+        timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
+        
     }
     
     public void run() {
@@ -68,14 +80,27 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
      */
     private void parseClientCommands(String command) {
 
-        if (command.equals("/q")) {
+        if (command.equalsIgnoreCase("/q")) {
 
             Client.closeConnection();
             closeClient();
 
-        } else { // must be a request for the server
+        } else if (command.equalsIgnoreCase("/timestamp")) {
+            
+            if (timestamp) timestamp = false;
+            else timestamp = true;
+            
+            txtMessage.setText("");
+            
+        }else { // must be a request for the server
 
-            Client.sender.println(command);
+            if (Client.sender != null) {
+                Client.sender.println(command);
+            }
+            else {
+                System.out.println("sender was null");
+            }
+            
             txtMessage.setText("");
         }
     }
@@ -92,7 +117,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         PanelHead = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         Title = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
+        PanelBody = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         history = new javax.swing.JTextArea();
         txtMessage = new javax.swing.JTextField();
@@ -105,7 +130,6 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         setLocationByPlatform(true);
         setMinimumSize(new java.awt.Dimension(700, 540));
         setUndecorated(true);
-        setPreferredSize(new java.awt.Dimension(700, 540));
         setSize(new java.awt.Dimension(700, 540));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -165,7 +189,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
 
         getContentPane().add(PanelHead, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 700, 40));
 
-        jPanel2.setBackground(new java.awt.Color(33, 37, 43));
+        PanelBody.setBackground(new java.awt.Color(33, 37, 43));
 
         history.setEditable(false);
         history.setBackground(new java.awt.Color(0, 0, 0));
@@ -197,33 +221,33 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             }
         });
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout PanelBodyLayout = new javax.swing.GroupLayout(PanelBody);
+        PanelBody.setLayout(PanelBodyLayout);
+        PanelBodyLayout.setHorizontalGroup(
+            PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PanelBodyLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
+                    .addGroup(PanelBodyLayout.createSequentialGroup()
                         .addComponent(txtMessage, javax.swing.GroupLayout.PREFERRED_SIZE, 585, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)))
                 .addContainerGap())
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        PanelBodyLayout.setVerticalGroup(
+            PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PanelBodyLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(txtMessage)
                     .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
-        getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 700, 500));
+        getContentPane().add(PanelBody, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 700, 500));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -307,12 +331,12 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel PanelBody;
     private javax.swing.JPanel PanelHead;
     private javax.swing.JLabel Title;
     private javax.swing.JButton btnSend;
     private javax.swing.JTextArea history;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField txtMessage;
     // End of variables declaration//GEN-END:variables
@@ -323,7 +347,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
      */
     public void clientMessage(String msg) {
 	
-        history.append("[CLIENT]: " + msg + "\n");
+        println("[CLIENT]: " + msg);
     }
     
     /**
@@ -332,7 +356,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
      */
     public void clientError(String msg) {
 		
-	history.append("[ERROR]: " + msg + "\n");
+	println("[ERROR]: " + msg);
     }
 
     /**
@@ -341,7 +365,9 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
      */
     public void messageAppend(String msg) {
         
-        history.append(msg);
+        
+        //history.append(msg);
+        println(msg);
     }
     
     /**
@@ -351,6 +377,20 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         
         Client.closeConnection();
         System.exit(0);
+    }
+    
+    /**
+     * Appends msg to the text area with a new line
+     * @param msg 
+     */
+    public void println(String msg) {
+    
+        if (timestamp) {
+            timeNow = LocalDateTime.now();
+            history.append("(" + timeFormat.format(timeNow) + ") ");
+        }
+        
+        history.append(msg + "\n");
     }
     
     /**

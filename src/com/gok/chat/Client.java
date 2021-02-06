@@ -142,8 +142,8 @@ public class Client {
             String message = user.substring(user.indexOf(']')+1);
             user = user.substring(0, user.indexOf(']'));
 
-
-            window.messageAppend(user + ": " + message + "\n");
+            window.println(user + ": " + message);
+            //window.messageAppend(user + ": " + message + "\n");
 
 
         } else if (msg.equals("[PNG]")) { // server tries to ping
@@ -154,16 +154,16 @@ public class Client {
 
             String username = msg.substring(msg.indexOf(']')+1);
 
-            window.messageAppend(username + " has joined the server.\n");
+            window.println(username + " has joined the server.");
             
         } else if (msg.startsWith("[DISC]")) { // user disconnected
 
             String username = msg.substring(msg.indexOf(']')+1);
 
-            window.messageAppend(username + " left the server.\n");
+            window.println(username + " left the server.");
         }
         else {
-            window.messageAppend("[SERVER RESPONSE]: " + msg + "\n");
+            window.println("[SERVER RESPONSE]: " + msg);
         }
     }
 
@@ -188,6 +188,8 @@ public class Client {
 
             // remove this
             //try {Thread.sleep(7000); } catch (InterruptedException e) {}
+            
+            
             sender.println("[JYN]" + username);
 
             { // if there's no response
