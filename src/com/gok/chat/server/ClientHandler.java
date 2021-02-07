@@ -1,4 +1,3 @@
-
 package com.gok.chat.server;
 
 import java.io.BufferedReader;
@@ -11,37 +10,55 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 
-
 public class ClientHandler extends Server {
-    
+
     private Socket client;
     private BufferedReader receiver;
     protected PrintWriter sender;
     private ArrayList<ClientHandler> clientsList;
     private int easterEgg = 0;
     private int connection_timeout = 0;
-    private String username;
-	
-    public ClientHandler(Socket client, ArrayList<ClientHandler> clientsList, ExecutorService threadpool) throws IOException {
+    public String username;
+    public final int UID;
+
+    public ClientHandler(Socket client, ArrayList<ClientHandler> clientsList, ExecutorService threadpool, int UID) {
 
         this.client = client;
         this.clientsList = clientsList;
         this.threadpool = threadpool;
+        this.UID = UID;
 
-        receiver = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
-        sender = new PrintWriter(client.getOutputStream(), true);
+        try {
+            receiver = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
+            sender = new PrintWriter(client.getOutputStream(), true);
+            running = true;
+        } catch (IOException ex) {
 
-        running = true;
+            serverError("Exception trying to establish sender stream");
+            setNullThis();
+            running = false;
+        }
+    }
+
+    public void setNullThis() {
+
+        ArrayList<ClientHandler> list = clientsList;
+        int index = list.indexOf(this);
+        list.set(index, null);
     }
 
     @Override
     public void run() {
 
+        if (!running) {
+            return;
+        }
+
         try {
 
             { // if there's no response
                 int count = 0;
-                while (!receiver.ready() && count < 4) {
+                while ( receiver != null && !receiver.ready() && count < 4) {
 
                     Thread.sleep(100);
                     count++;
@@ -57,9 +74,9 @@ public class ClientHandler extends Server {
                 request = receiver.readLine();
             }
 
-            if (running && request.startsWith("[JYN]")) { // join request
+            if (sender != null && running && request.startsWith("[JYN]")) { // join request
 
-                sender.println("[ACK]");
+                sender.println("[ACK]" + UID);
 
                 username = request.substring(request.indexOf(']') + 1);
                 serverMessage("Client " + username + " from " + client.getInetAddress() + " connected.");
@@ -71,9 +88,10 @@ public class ClientHandler extends Server {
 
                 Thread timeout = new Thread("Timeout") {
 
+                    @Override
                     public void run() {
 
-                        while (running) {
+                        while (running && sender != null) {
 
                             try {
                                 Thread.sleep(3000);
@@ -85,9 +103,10 @@ public class ClientHandler extends Server {
                             } else { // ping client
                                 connection_timeout++;
 
-                                sender.println("[PNG]");
+                                if ( sender != null ) sender.println("[PNG]");
                             }
                         }
+                        
 
                     }
                 };
@@ -121,7 +140,6 @@ public class ClientHandler extends Server {
 //
 //                        serverError("Out of bounds while trying to print client request string");
 //                    }
-
                     if (request.substring(0, 1).equals("/")) {
 
                         if (request.startsWith("/say ")) {
@@ -191,13 +209,18 @@ public class ClientHandler extends Server {
             try {
                 client.close();
                 //clientsList.remove(clientsList.size() - 1);
+                receiver = null;
+                sender = null;
+
+                setNullThis();
+                
 
             } catch (IOException e) {
                 serverError("Exception in Client Handler");
                 e.printStackTrace();
             }
         }
-
+        
     }
 
     private void sendHelp() {
@@ -210,12 +233,13 @@ public class ClientHandler extends Server {
     }
 
     private void sayToAll(String msg) {
-        
 
-        for (ClientHandler client : clientsList) {   
-            
-            client.sender.println(msg);
+        for (ClientHandler client : clientsList) {
+
+            if (client != null) {
+                client.sender.println(msg);
+            }
         }
     }
-    
+
 }

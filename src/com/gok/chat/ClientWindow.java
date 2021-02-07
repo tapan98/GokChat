@@ -1,12 +1,8 @@
 
 package com.gok.chat;
 
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.io.PrintWriter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import javax.swing.text.DefaultCaret;
 
@@ -26,6 +22,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     private DateTimeFormatter timeFormat;
     private LocalDateTime timeNow;
     private boolean timestamp = true;
+    private int uID = -1;
     
     /**
      * Front-end client
@@ -52,6 +49,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         System.out.println("Window started");
     }
 
+    public void setUID(int UID) {
+    
+        this.uID = UID;
+    }
+    
     private void send(String msg) {
 
         if (msg.isEmpty()) {
@@ -63,7 +65,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
 
         }else {     
             if (Client.sender != null) {
-                Client.sender.println("[MSG]" + "[" + username + "]" + msg);
+                Client.sender.println("[MSG]" + "[" + username + " (" + uID +  ")]" + msg);
             }
             else {
                 System.out.println("sender was null");
@@ -387,7 +389,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     
         if (timestamp) {
             timeNow = LocalDateTime.now();
-            history.append("(" + timeFormat.format(timeNow) + ") ");
+            history.append("[" + timeFormat.format(timeNow) + "] ");
         }
         
         history.append(msg + "\n");

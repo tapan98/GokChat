@@ -12,6 +12,7 @@ public class Client {
     final private String username;
     final private String address;
     final private int port;
+    private int UID = -1;
     
     ClientWindow window;
     Thread windowThread;
@@ -210,12 +211,14 @@ public class Client {
 
             String ack = receiver.readLine();
 
-            if (!ack.equals("[ACK]")) {
+            if (!ack.startsWith("[ACK]")) {
 
                 window.clientError("Reply was: " + ack);
                 throw new IOException();
             } else {
 
+                UID = Integer.parseInt(ack.substring(ack.indexOf(']')+1));
+                window.setUID(UID);
                 //history.append("\nConnected to the server.\n" + receiver.readLine());
             }
 

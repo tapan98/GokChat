@@ -31,9 +31,9 @@ public class Server implements Runnable {
 		
 		serverMessage("Starting the server...");
 		
-		clientsList = new ArrayList<>();
+		clientsList = new ArrayList<ClientHandler>();
 		
-		threadpool = Executors.newFixedThreadPool(maxThreadPool);
+		threadpool = Executors.newCachedThreadPool();
 		
 		try {
 			
@@ -89,7 +89,11 @@ public class Server implements Runnable {
                 }else if (command.equals("/port")) {
                     serverMessage(""+port);
 
-                } else {
+                }else if (command.equalsIgnoreCase("/clients")) {
+                    serverMessage("Total Clients: " + clientsList.size());
+                    printUID();
+                } 
+                else {
                     serverMessage("Don't understand that command");
                 }
 
@@ -109,7 +113,8 @@ public class Server implements Runnable {
 
                 for (ClientHandler handle : clientsList) {
 
-                    handle.running = false;
+                    if (handle != null)
+                        handle.running = false;
                 }
                 
                 threadpool.shutdown();
@@ -160,5 +165,22 @@ public class Server implements Runnable {
 	protected synchronized void serverMessage(String msg) {
 
         System.out.println("[INFO]: " + msg);
+    }
+        
+    private synchronized void printUID() {
+        
+        ArrayList<ClientHandler> list = clientsList;
+        
+        for (int i = 0; i < list.size(); i++) {
+        
+            if (list.get(i) == null) {
+            
+                serverMessage("index " + i + " is null");
+            }
+            else {
+                
+                serverMessage("UID of " + list.get(i).username + " (" + i + ") is " + list.get(i).UID);
+            }
+        }
     }
 }

@@ -26,6 +26,26 @@ public class ClientListener extends Server {
         running = false;
     }
 
+    private synchronized ClientHandler createAssignID(Socket client) {
+        
+        ClientHandler handle;
+        ArrayList<ClientHandler> list = clientsList;
+        
+        for (int i = 0; i < list.size(); i++) {
+        
+            if (list.get(i) == null) {
+            
+                handle = new ClientHandler(client, clientsList, threadpool, i);
+                list.set(i, handle);
+                return handle;
+            }
+        }
+        
+        handle = new ClientHandler(client, clientsList, threadpool, list.size());
+        list.add(handle);
+        return handle;
+    }
+    
     @Override
     public void run() {
         try {
@@ -36,9 +56,11 @@ public class ClientListener extends Server {
                 // in an attempt to close current thread
 
                 //serverMessage(client.getInetAddress() + " connected.");
-                ClientHandler clientThread = new ClientHandler(client, clientsList, threadpool);
+                
+                ClientHandler clientThread = createAssignID(client);
+                        //ClientHandler(client, clientsList, threadpool);
 
-                addToClientsList(clientThread);
+                // addToClientsList(clientThread);
                 threadpool.execute(clientThread);
             }
 
@@ -50,11 +72,6 @@ public class ClientListener extends Server {
             e.printStackTrace();
 
         }
-    }
-
-    protected synchronized void addToClientsList(ClientHandler handle) {
-
-        clientsList.add(handle);
     }
     
 }
