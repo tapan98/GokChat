@@ -42,11 +42,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         
     }
     
+    @Override
     public void run() {
         
-        
         setVisible(true);
-        System.out.println("Window started");
+        
     }
 
     public void setUID(int UID) {
@@ -65,11 +65,9 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
 
         }else {     
             if (Client.sender != null) {
-                Client.sender.println("[MSG]" + "[" + username + " (" + uID +  ")]" + msg);
+                Client.sender.println(msg);
             }
-            else {
-                System.out.println("sender was null");
-            }
+
             txtMessage.setText("");
         }
 
@@ -82,7 +80,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
      */
     private void parseClientCommands(String command) {
 
-        if (command.equalsIgnoreCase("/q")) {
+        if (command.equalsIgnoreCase("/q") || command.equalsIgnoreCase("/quit")) {
 
             Client.closeConnection();
             closeClient();
@@ -91,19 +89,18 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             
             if (timestamp) timestamp = false;
             else timestamp = true;
+
             
-            txtMessage.setText("");
+        } else if ( command.equalsIgnoreCase("/clear") ) {
             
-        }else { // must be a request for the server
+            history.setText("");
+        }
+        else { // must be a request for the server
 
             if (Client.sender != null) {
                 Client.sender.println(command);
             }
-            else {
-                System.out.println("sender was null");
-            }
-            
-            txtMessage.setText("");
+
         }
     }
     
@@ -198,7 +195,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         history.setColumns(20);
         history.setForeground(new java.awt.Color(255, 255, 255));
         history.setRows(5);
-        history.setFocusable(false);
+        history.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                historyKeyPressed(evt);
+            }
+        });
         jScrollPane1.setViewportView(history);
 
         txtMessage.setBackground(new java.awt.Color(0, 0, 0));
@@ -294,8 +295,24 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             
             send(txtMessage.getText());
+            txtMessage.setText("");
         }
     }//GEN-LAST:event_txtMessageKeyPressed
+
+    private void historyKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_historyKeyPressed
+        // TODO add your handling code here:
+        char key = evt.getKeyChar();
+
+        if ( (key >= 'A' && key <= 'Z') || (key >= 'a' && key <= 'z') || (key >= '0' && key <='9') ) {
+            
+            txtMessage.requestFocus();
+            txtMessage.setText(txtMessage.getText() + evt.getKeyChar());
+            
+        }else if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            
+            send(txtMessage.getText());
+        }
+    }//GEN-LAST:event_historyKeyPressed
 
     /**
      * @param args the command line arguments
@@ -382,7 +399,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     }
     
     /**
-     * Appends msg to the text area with a new line
+     * Appends String msg to the text area with a new line
      * @param msg 
      */
     public void println(String msg) {

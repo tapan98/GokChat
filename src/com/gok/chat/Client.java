@@ -45,11 +45,13 @@ public class Client {
      */
     public void runClient() {
     
-        window = new ClientWindow(sender, this.username);
-        windowThread = new Thread(window);
-        windowThread.start(); // creates window
+        window = new ClientWindow(sender, username);
+        windowThread = new Thread(window); // creates window
+        windowThread.start(); // displays window
         
+        // try { Thread.sleep(3000); } catch (InterruptedException e) {}
 
+        window.println("Press Ctrl + PageDown on the chat area to resume auto-scroll");
         window.clientMessage("Username: " + username + "; IP: " + address + "; Port: " + port);
         
         connected = openConnection(address, port);
@@ -125,46 +127,27 @@ public class Client {
         return handle;
     }
 
+    /**
+     * 
+     * @return the username of the client
+     */
     public String getUsername() {
-    
         return username;
-        
     }
     
     /**
-     * Identifies server response type and appends appropriate message to the history
-     * @param msg 
+     * Identifies server response type and appends appropriate message to the history field
+     * @param msg the String type reference
      */
     private void serverResponse(String msg) {
 
-        if (msg.startsWith("[MSG]")) {
-
-            String user = msg.substring(msg.indexOf(']')+2);
-            String message = user.substring(user.indexOf(']')+1);
-            user = user.substring(0, user.indexOf(']'));
-
-            window.println(user + ": " + message);
-            //window.messageAppend(user + ": " + message + "\n");
-
-
-        } else if (msg.equals("[PNG]")) { // server tries to ping
+        if (msg.equals("[PNG]")) { // server ping request
 
             if (sender != null) sender.println("[PRE]"); // Ping reply
 
-        } else if (msg.startsWith("[JYN]")) { // user joined
-
-            String username = msg.substring(msg.indexOf(']')+1);
-
-            window.println(username + " has joined the server.");
-            
-        } else if (msg.startsWith("[DISC]")) { // user disconnected
-
-            String username = msg.substring(msg.indexOf(']')+1);
-
-            window.println(username + " left the server.");
-        }
+        } 
         else {
-            window.println("[SERVER RESPONSE]: " + msg);
+            window.println(msg);
         }
     }
 
@@ -179,7 +162,7 @@ public class Client {
 
         try {
 
-            window.clientMessage("Connecting to the server[" + address + ":" + port + "]...");
+            window.clientMessage("Connecting to the server " + address + ":" + port + "...");
 
             socket = new Socket(address, port);
 
@@ -236,8 +219,9 @@ public class Client {
     }
    
     /**
-     * This method sends quit message to the server, tries to interrupt serverHandler
-     * and finally tries to close the socket connection
+     * This method sends quit message to the server (indicating to close the socket connection),
+     * tries to interrupt serverHandler and
+     * finally tries to close the socket connection
      */
     public static void closeConnection() {
 
@@ -272,4 +256,5 @@ public class Client {
 
         }
     }
+    
 }

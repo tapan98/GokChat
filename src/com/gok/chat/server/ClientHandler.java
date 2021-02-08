@@ -84,7 +84,7 @@ public class ClientHandler extends Server {
                 sender.println("Welcome to the GokServer");
                 sender.println("Enter /help and get some help :>");
 
-                sayToAll(request);
+                sayToAll(username + " (" + UID + ") has joined the server.");
 
                 Thread timeout = new Thread("Timeout") {
 
@@ -94,7 +94,7 @@ public class ClientHandler extends Server {
                         while (running && sender != null) {
 
                             try {
-                                Thread.sleep(3000);
+                                Thread.sleep(5000);
                             } catch (InterruptedException e) {
                             }
 
@@ -141,27 +141,35 @@ public class ClientHandler extends Server {
 //                        serverError("Out of bounds while trying to print client request string");
 //                    }
                     if (request.substring(0, 1).equals("/")) {
+                        
+                        String req = request.toUpperCase();
 
-                        if (request.startsWith("/say ")) {
+                        if ( req.startsWith("/SAY") ) {
 
                             easterEgg = 0;
                             sender.println("you said: " + request.substring(request.indexOf(' ') + 1));
 
-                        } else if (request.equals("/date")) {
+                        } else if (req.startsWith("/DATE")) {
 
                             easterEgg = 0;
                             sender.println(new Date().toString());
 
-                        } else if (request.equalsIgnoreCase("/quit")) {
+                        } else if ( req.startsWith("/QUIT") ) {
 
                             running = false;
 
-                        } else if (request.equals("/help")) {
+                        } else if ( req.startsWith("/HELP") ) {
 
                             easterEgg = 0;
                             sendHelp();
 
-                        } else {
+                        } else if ( req.startsWith("/PM") ) {
+                            
+                            sendPM(request);
+                            easterEgg = 0;
+                        }
+                        
+                        else {
 
                             easterEgg++;
 
@@ -180,9 +188,9 @@ public class ClientHandler extends Server {
                     } else if (request.equals("[PRE]")) {
 
                         connection_timeout = 0;
-                    } else if (request.startsWith("[MSG]")) {
+                    } else { // normal message
 
-                        sayToAll(request);
+                        sayToAll(username + " (" + UID + "): " + request);
 
                     }
                 }
@@ -190,7 +198,7 @@ public class ClientHandler extends Server {
 
             serverMessage("Client " + username + "@" + client.getInetAddress() + " has disconnected.");
 
-            sayToAll("[DISC]" + username);
+            sayToAll(username + " (" + UID + ") disconnected.");
         } catch (SocketException e) {
 
             serverMessage("Exception: Client has probably disconnected");
@@ -228,6 +236,7 @@ public class ClientHandler extends Server {
                 "Usage:\n"
                 + "/help: to get this help\n"
                 + "/date: get a date\n"
+                + "/pm <id> <MESSAGE>: send a Personal Message\n"
                 + "/quit: quit the server"
         );
     }
@@ -241,5 +250,100 @@ public class ClientHandler extends Server {
             }
         }
     }
+    
+    
+    /**
+     * Counts the number of given char value in a String
+     * @param text
+     *        the base String
+     * @param c
+     *        the char to look for
+     * @param upto
+     *        is the minimum number of characters to look for
+     * @return
+     *        A Boolean value true if the number of parameter 'c' occurrences is more than or equal to the parameter 'upto'
+     *        otherwise false
+     */
+    private static boolean countChars(String text, char c, int upto) {
 
+        int length = text.length();
+        int count = 0;
+
+        for (int i = 0; i < length; i++) {
+
+            if (text.charAt(i) == c) count++;
+
+            if (count == upto) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Sends a PM (Personal Message)
+     * @param msg the String message to send
+     * @return returns true if the message was sent successfully otherwise false
+     */
+    public boolean sendPM(String msg) {      
+        
+        String helpText = "/PM <ID> <MESSAGE>";
+        int tID = -1;
+        
+        if ( !countChars(msg, ' ', 2) ) { // if not enough spaces
+
+            sender.println(helpText); 
+            return false;
+        }
+            
+        String tokens[] = msg.split(" ", 3); // --/PM <ID> <MESSAGE>--
+        
+        try { // parse tID
+            tID = Integer.parseInt(tokens[1]);
+        }
+        catch ( NumberFormatException e ) {
+            
+            sender.println(helpText);
+            return false;
+        }
+        
+        
+        if (clientsList.size() <= tID || tID < 0 || clientsList.get(tID) == null || sender == null) {
+            
+            if (sender != null) {
+                
+                sender.println("User is not available");             
+            }
+            
+            return false;
+        }
+
+        // send token[2] i.e. message to uID
+
+        if ( clientsList.get(tID).sender != null && sender != null ) {
+            
+            sender.println("PM to " + clientsList.get(tID).getUserName() + " (" + clientsList.get(tID).getUID() + "): " + tokens[2]);
+            clientsList.get(tID).sender.println("PM from " + username + " (" + UID + "): " + tokens[2]);
+        }
+
+        
+        return true;
+    }
+    
+    /**
+     * 
+     * @return username
+     */
+    public String getUserName() {
+    
+        return username;
+    }
+    
+    /**
+     * 
+     * @return user ID
+     */
+    public int getUID() {
+        return UID;
+    }
+    
 }
