@@ -51,7 +51,8 @@ public class Client {
         
         // try { Thread.sleep(3000); } catch (InterruptedException e) {}
 
-        window.println("Press Ctrl + PageDown on the chat area to resume auto-scroll");
+        window.clientMessage("Entering /CHELP displays command help (not for the server)");
+        window.clientMessage("Press Ctrl + End on the chat area to resume auto-scroll");
         window.clientMessage("Username: " + username + "; IP: " + address + "; Port: " + port);
         
         connected = openConnection(address, port);

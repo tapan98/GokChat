@@ -82,7 +82,7 @@ public class ClientHandler extends Server {
                 serverMessage("Client " + username + " from " + client.getInetAddress() + " connected.");
 
                 sender.println("Welcome to the GokServer");
-                sender.println("Enter /help and get some help :>");
+                sender.println("Enter /HELP and get some help :>");
 
                 sayToAll(username + " (" + UID + ") has joined the server.");
 
@@ -144,7 +144,7 @@ public class ClientHandler extends Server {
                         
                         String req = request.toUpperCase();
 
-                        if ( req.startsWith("/SAY") ) {
+                        if ( req.startsWith("/SAY ") ) {
 
                             easterEgg = 0;
                             sender.println("you said: " + request.substring(request.indexOf(' ') + 1));
@@ -158,7 +158,7 @@ public class ClientHandler extends Server {
 
                             running = false;
 
-                        } else if ( req.startsWith("/HELP") ) {
+                        } else if ( req.equals("/HELP") ) {
 
                             easterEgg = 0;
                             sendHelp();
@@ -167,8 +167,14 @@ public class ClientHandler extends Server {
                             
                             sendPM(request);
                             easterEgg = 0;
+                       
+                        } else if ( req.equals("/USERS") ) {
+                            
+                            serverMessage("Inside /USERS branch");
+                            sendUsers();
+                            easterEgg = 0;
                         }
-                        
+                       
                         else {
 
                             easterEgg++;
@@ -178,10 +184,10 @@ public class ClientHandler extends Server {
                                 sender.println("Just Stop It.");
                             } else if (easterEgg > 4) {
 
-                                sender.println("Stop it. Get some /help.");
+                                sender.println("Stop it. Get some /HELP.");
                             } else {
 
-                                sender.println("Mmm? Get some /help :>");
+                                sender.println("Mmm? Get some /HELP :>");
                             }
                         }
 
@@ -234,10 +240,11 @@ public class ClientHandler extends Server {
     private void sendHelp() {
         sender.println(
                 "Usage:\n"
-                + "/help: to get this help\n"
-                + "/date: get a date\n"
-                + "/pm <id> <MESSAGE>: send a Personal Message\n"
-                + "/quit: quit the server"
+                + "/HELP: to get this help\n"
+                + "/DATE: get a date\n"
+                + "/PM <id> <MESSAGE>: send a Personal Message\n"
+                + "/USERS: get a list of online users\n"
+                + "/QUIT: quit the server"
         );
     }
 
@@ -330,6 +337,27 @@ public class ClientHandler extends Server {
     }
     
     /**
+     * Sends a list of users to the client
+     */
+    private void sendUsers(){
+        String user;
+        int uID;
+        
+        sender.println("\n----Users----");
+        
+        for (ClientHandler handle: clientsList) {
+            
+            if (handle != null) {
+                user = handle.getUserName();
+                uID = handle.getUID();
+                sender.println(user + " (" + uID + ")");
+            }
+        }
+        sender.println("-------------\n");
+    }
+    
+    
+    /**
      * 
      * @return username
      */
@@ -345,5 +373,7 @@ public class ClientHandler extends Server {
     public int getUID() {
         return UID;
     }
+    
+    
     
 }

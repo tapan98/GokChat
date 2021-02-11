@@ -80,13 +80,13 @@ public class Server implements Runnable {
                 if (command.equalsIgnoreCase("Hello")) {
                     serverMessage("Hello, have a good day :)");
 
-                }else if (command.equals("/help")) {
+                }else if (command.equalsIgnoreCase("/help")) {
                     printHelp();
 
-                }else if (command.equals("/shutdown") || command.equals("/q")) {
+                }else if (command.equalsIgnoreCase("/shutdown") || command.equalsIgnoreCase("/q")) {
                     running = false;
 
-                }else if (command.equals("/port")) {
+                }else if (command.equalsIgnoreCase("/port")) {
                     serverMessage(""+port);
 
                 }else if (command.equalsIgnoreCase("/clients")) {

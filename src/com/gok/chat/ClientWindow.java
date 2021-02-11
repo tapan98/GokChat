@@ -3,6 +3,7 @@ package com.gok.chat;
 
 import java.awt.event.KeyEvent;
 import java.io.PrintWriter;
+import static java.lang.Math.abs;
 import java.time.LocalDateTime;
 import javax.swing.text.DefaultCaret;
 
@@ -15,6 +16,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
 
     private int mouseX;
     private int mouseY;
+    
     private DefaultCaret caret;
     
     final private PrintWriter sender;
@@ -54,6 +56,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         this.uID = UID;
     }
     
+    /**
+     * Sends input value to the server or parses valid client side command.
+     * If the command is unrecognized by the client, it is then sent to the server.
+     * @param msg the input String reference
+     */
     private void send(String msg) {
 
         if (msg.isEmpty()) {
@@ -67,6 +74,10 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             if (Client.sender != null) {
                 Client.sender.println(msg);
             }
+            else {
+                
+                clientError("No connection to the server.");
+            }
 
             txtMessage.setText("");
         }
@@ -74,26 +85,30 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     }
     
     /**
-     * parses client commands
-     *
-     * @param command
+     * Parses client commands.
+     * If the command is unrecognized, then it is send to the connected server.
+     * @param command the input String reference
      */
     private void parseClientCommands(String command) {
 
-        if (command.equalsIgnoreCase("/q") || command.equalsIgnoreCase("/quit")) {
+        if (command.equalsIgnoreCase("/Q") || command.equalsIgnoreCase("/QUIT")) {
 
             Client.closeConnection();
             closeClient();
 
-        } else if (command.equalsIgnoreCase("/timestamp")) {
+        } else if (command.equalsIgnoreCase("/TIMESTAMP")) {
             
             if (timestamp) timestamp = false;
             else timestamp = true;
-
             
-        } else if ( command.equalsIgnoreCase("/clear") ) {
+        } else if ( command.equalsIgnoreCase("/CLEAR") ) {
             
             history.setText("");
+        
+        } else if( command.equalsIgnoreCase("/CHELP") ) {
+            
+            showHelp();
+            
         }
         else { // must be a request for the server
 
@@ -303,7 +318,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         // TODO add your handling code here:
         char key = evt.getKeyChar();
 
-        if ( (key >= 'A' && key <= 'Z') || (key >= 'a' && key <= 'z') || (key >= '0' && key <='9') ) {
+        if ( (key >= 'A' && key <= 'Z') || (key >= 'a' && key <= 'z') || (key >= '0' && key <='9') || key == '/' ) {
             
             txtMessage.requestFocus();
             txtMessage.setText(txtMessage.getText() + evt.getKeyChar());
@@ -360,6 +375,15 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     private javax.swing.JTextField txtMessage;
     // End of variables declaration//GEN-END:variables
 
+    public void showHelp(){
+        
+        clientMessage("Help is here!");
+        clientMessage("/CHELP: Displays this help.");
+        clientMessage("/Q or /QUIT: As you've probably guessed, BEGONE! :)");
+        clientMessage("/CLEAR: Does some cleansing...");
+        clientMessage("/TIMESTAMP: Toggles timestamp.");
+    }
+    
     /**
      * Appends Client logs to the history component
      * @param msg 
