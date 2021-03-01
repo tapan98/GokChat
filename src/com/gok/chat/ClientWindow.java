@@ -3,11 +3,12 @@ package com.gok.chat;
 
 import java.awt.event.KeyEvent;
 import java.io.PrintWriter;
-import static java.lang.Math.abs;
 import java.time.LocalDateTime;
 import javax.swing.text.DefaultCaret;
 
 import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * GUI for the Client
@@ -24,7 +25,10 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     private DateTimeFormatter timeFormat;
     private LocalDateTime timeNow;
     private boolean timestamp = true;
+    private boolean getUsers = true;
     private int uID = -1;
+    private int timeout = 0;
+    
     
     /**
      * Front-end client
@@ -39,6 +43,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         initComponents();
         caret = (DefaultCaret)history.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        
         
         timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
         
@@ -119,6 +124,73 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         }
     }
     
+    public void initGetUsers(){
+        
+        Thread handle = new Thread("GetUser"){
+        
+            public int sendRequest(){
+                
+                if ( Client.sender != null ){
+                
+                    Client.sender.println("[USRS]");
+                    
+                    return 0;
+                } else {
+                    
+                    return -1;
+                }
+            }
+            
+            @Override
+            public void run(){
+              
+                while(getUsers){
+                    
+                    try { 
+                        
+                        if (sendRequest() == -1 || timeout > 3) {
+
+                            getUsers = false;
+                            throw new Exception();
+                        
+                        } else {
+                        
+                            timeout++;
+                        }
+                        
+                        Thread.sleep(5000); 
+                                            
+                    } catch (InterruptedException ex) { 
+                        clientError("Interruption in GetUser thread!"); 
+                    }
+                    catch( Exception ex ){
+                        clientError("Cannot get a list of Users");
+                    }
+                }
+            }
+            
+        };
+        
+        handle.start();
+    }
+    
+    /**
+     * 
+     * @param users Semicolon separated list of Users
+     */
+    
+    public void setUsersList(String users) {
+        
+        timeout = 0;
+        
+        String usersArr[] = users.split(";");
+
+        if ( usersArr.length != 0 ) {
+            
+            UsersList.setListData(usersArr);
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -136,6 +208,9 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         history = new javax.swing.JTextArea();
         txtMessage = new javax.swing.JTextField();
         btnSend = new javax.swing.JButton();
+        LabelOnlineUsers = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        UsersList = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Gok Chat");
@@ -188,7 +263,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PanelHeadLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(Title, javax.swing.GroupLayout.PREFERRED_SIZE, 534, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 130, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 418, Short.MAX_VALUE)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -201,15 +276,19 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             .addComponent(Title, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        getContentPane().add(PanelHead, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 700, 40));
+        getContentPane().add(PanelHead, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 980, 40));
 
         PanelBody.setBackground(new java.awt.Color(33, 37, 43));
+
+        jScrollPane1.setForeground(new java.awt.Color(102, 102, 102));
 
         history.setEditable(false);
         history.setBackground(new java.awt.Color(0, 0, 0));
         history.setColumns(20);
         history.setForeground(new java.awt.Color(255, 255, 255));
+        history.setLineWrap(true);
         history.setRows(5);
+        history.setAutoscrolls(false);
         history.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 historyKeyPressed(evt);
@@ -239,33 +318,49 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             }
         });
 
+        LabelOnlineUsers.setForeground(new java.awt.Color(255, 255, 255));
+        LabelOnlineUsers.setText("Online Users:");
+
+        UsersList.setBackground(new java.awt.Color(0, 0, 0));
+        UsersList.setForeground(new java.awt.Color(255, 255, 255));
+        jScrollPane2.setViewportView(UsersList);
+
         javax.swing.GroupLayout PanelBodyLayout = new javax.swing.GroupLayout(PanelBody);
         PanelBody.setLayout(PanelBodyLayout);
         PanelBodyLayout.setHorizontalGroup(
             PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelBodyLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(jScrollPane1)
                     .addGroup(PanelBodyLayout.createSequentialGroup()
                         .addComponent(txtMessage, javax.swing.GroupLayout.PREFERRED_SIZE, 585, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)))
+                        .addComponent(btnSend, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(18, 18, 18)
+                .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2)
+                    .addComponent(LabelOnlineUsers, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE))
                 .addContainerGap())
         );
         PanelBodyLayout.setVerticalGroup(
             PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelBodyLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 437, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(PanelBodyLayout.createSequentialGroup()
+                        .addComponent(LabelOnlineUsers, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(txtMessage)
-                    .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE))
+                    .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
-        getContentPane().add(PanelBody, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 700, 500));
+        getContentPane().add(PanelBody, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 980, 500));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -365,13 +460,16 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel LabelOnlineUsers;
     private javax.swing.JPanel PanelBody;
     private javax.swing.JPanel PanelHead;
     private javax.swing.JLabel Title;
+    private javax.swing.JList<String> UsersList;
     private javax.swing.JButton btnSend;
     private javax.swing.JTextArea history;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextField txtMessage;
     // End of variables declaration//GEN-END:variables
 
@@ -426,7 +524,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
      * Appends String msg to the text area with a new line
      * @param msg 
      */
-    public void println(String msg) {
+    public synchronized void println(String msg) {
     
         if (timestamp) {
             timeNow = LocalDateTime.now();

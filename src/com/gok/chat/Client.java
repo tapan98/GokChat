@@ -63,6 +63,8 @@ public class Client {
 
             serverHandler = initServerHandler(); // new handler thread
             serverHandler.start();
+            
+            window.initGetUsers();
 
         } else {
 
@@ -146,7 +148,11 @@ public class Client {
 
             if (sender != null) sender.println("[PRE]"); // Ping reply
 
-        } 
+        } else if (msg.startsWith("[USRS]")) {
+            
+            window.setUsersList(msg.substring(msg.indexOf("]")+1));
+            
+        }
         else {
             window.println(msg);
         }

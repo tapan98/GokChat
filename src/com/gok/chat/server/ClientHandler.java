@@ -170,7 +170,6 @@ public class ClientHandler extends Server {
                        
                         } else if ( req.equals("/USERS") ) {
                             
-                            serverMessage("Inside /USERS branch");
                             sendUsers();
                             easterEgg = 0;
                         }
@@ -194,7 +193,15 @@ public class ClientHandler extends Server {
                     } else if (request.equals("[PRE]")) {
 
                         connection_timeout = 0;
-                    } else { // normal message
+                    
+                    } else if (request.equals("[USRS]")) {
+                        
+                        serverMessage("[USRS] Request");
+                        sendUsers2();
+                        
+                    }
+                    
+                    else { // normal message
 
                         sayToAll(username + " (" + UID + "): " + request);
 
@@ -354,6 +361,30 @@ public class ClientHandler extends Server {
             }
         }
         sender.println("-------------\n");
+    }
+    
+    /**
+     * Sends semicolon separated list of users
+     */
+    private void sendUsers2() {
+    
+        String user;
+        int uID;
+        String packet = "[USRS]";
+        
+        for ( ClientHandler handle : clientsList ) {
+            
+            if (handle != null) {
+                
+                user = handle.getUserName();
+                uID = handle.getUID();
+                packet = packet + user + " (" + uID + ");";
+                
+            }
+        }
+        serverMessage("Sending packet: ");
+        serverMessage(packet);
+        sender.println(packet);
     }
     
     
