@@ -67,7 +67,7 @@ public class Login extends javax.swing.JFrame {
         setMinimumSize(new java.awt.Dimension(300, 340));
         setUndecorated(true);
         setSize(new java.awt.Dimension(300, 340));
-        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        getContentPane().setLayout(null);
 
         PanelHead.setBackground(new java.awt.Color(209, 48, 61));
         PanelHead.setPreferredSize(new java.awt.Dimension(300, 40));
@@ -121,7 +121,8 @@ public class Login extends javax.swing.JFrame {
                 .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        getContentPane().add(PanelHead, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 300, 40));
+        getContentPane().add(PanelHead);
+        PanelHead.setBounds(0, 0, 300, 40);
 
         PanelBody.setBackground(new java.awt.Color(33, 37, 43));
         PanelBody.setMinimumSize(new java.awt.Dimension(300, 300));
@@ -236,7 +237,8 @@ public class Login extends javax.swing.JFrame {
                 .addGap(33, 33, 33))
         );
 
-        getContentPane().add(PanelBody, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 300, 300));
+        getContentPane().add(PanelBody);
+        PanelBody.setBounds(0, 40, 300, 300);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents

@@ -101,6 +101,8 @@ public class Server implements Runnable {
 
             serverMessage("Server is shutting down...");
 
+            sayToAll(clientsList, "Server is shutting down...");
+            
         } catch (IOException e) {
             serverError("Exception while listening to commands");
             e.printStackTrace();
@@ -183,4 +185,15 @@ public class Server implements Runnable {
             }
         }
     }
+    
+    protected synchronized void sayToAll(ArrayList<ClientHandler> list, String msg) {
+
+        for (ClientHandler client : list) {
+
+            if (client != null && client.sender != null) {
+                client.sender.println(msg);
+            }
+        }
+    }
+    
 }

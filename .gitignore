@@ -1,2 +1,4 @@
 *.class
-/dist/
+/dist/*
+/classfiles/Client/*
+/classfiles/Server/*

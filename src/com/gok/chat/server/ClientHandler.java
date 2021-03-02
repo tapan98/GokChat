@@ -84,7 +84,7 @@ public class ClientHandler extends Server {
                 sender.println("Welcome to the GokServer");
                 sender.println("Enter /HELP and get some help :>");
 
-                sayToAll(username + " (" + UID + ") has joined the server.");
+                sayToAll(clientsList, username + " (" + UID + ") has joined the server.");
 
                 Thread timeout = new Thread("Timeout") {
 
@@ -196,14 +196,13 @@ public class ClientHandler extends Server {
                     
                     } else if (request.equals("[USRS]")) {
                         
-                        serverMessage("[USRS] Request");
                         sendUsers2();
                         
                     }
                     
                     else { // normal message
 
-                        sayToAll(username + " (" + UID + "): " + request);
+                        sayToAll(clientsList, username + " (" + UID + "): " + request);
 
                     }
                 }
@@ -211,7 +210,7 @@ public class ClientHandler extends Server {
 
             serverMessage("Client " + username + "@" + client.getInetAddress() + " has disconnected.");
 
-            sayToAll(username + " (" + UID + ") disconnected.");
+            sayToAll(clientsList, username + " (" + UID + ") disconnected.");
         } catch (SocketException e) {
 
             serverMessage("Exception: Client has probably disconnected");
@@ -253,16 +252,6 @@ public class ClientHandler extends Server {
                 + "/USERS: get a list of online users\n"
                 + "/QUIT: quit the server"
         );
-    }
-
-    private void sayToAll(String msg) {
-
-        for (ClientHandler client : clientsList) {
-
-            if (client != null) {
-                client.sender.println(msg);
-            }
-        }
     }
     
     
@@ -382,9 +371,7 @@ public class ClientHandler extends Server {
                 
             }
         }
-        serverMessage("Sending packet: ");
-        serverMessage(packet);
-        sender.println(packet);
+        if (sender != null) sender.println(packet);
     }
     
     

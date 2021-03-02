@@ -165,6 +165,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
                     }
                     catch( Exception ex ){
                         clientError("Cannot get a list of Users");
+                        setUsersList("");
                     }
                 }
             }
@@ -217,10 +218,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         setBackground(new java.awt.Color(0, 0, 0));
         setLocation(new java.awt.Point(0, 0));
         setLocationByPlatform(true);
-        setMinimumSize(new java.awt.Dimension(700, 540));
+        setMinimumSize(new java.awt.Dimension(980, 540));
         setUndecorated(true);
+        setPreferredSize(new java.awt.Dimension(940, 540));
         setSize(new java.awt.Dimension(700, 540));
-        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        getContentPane().setLayout(null);
 
         PanelHead.setBackground(new java.awt.Color(209, 48, 61));
         PanelHead.setPreferredSize(new java.awt.Dimension(700, 40));
@@ -276,7 +278,8 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             .addComponent(Title, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        getContentPane().add(PanelHead, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 980, 40));
+        getContentPane().add(PanelHead);
+        PanelHead.setBounds(0, 0, 980, 40);
 
         PanelBody.setBackground(new java.awt.Color(33, 37, 43));
 
@@ -339,8 +342,10 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
                         .addComponent(btnSend, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
                 .addGroup(PanelBodyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2)
-                    .addComponent(LabelOnlineUsers, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE))
+                    .addComponent(LabelOnlineUsers, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
+                    .addGroup(PanelBodyLayout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         PanelBodyLayout.setVerticalGroup(
@@ -360,7 +365,8 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
                 .addContainerGap())
         );
 
-        getContentPane().add(PanelBody, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 980, 500));
+        getContentPane().add(PanelBody);
+        PanelBody.setBounds(0, 40, 990, 500);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
