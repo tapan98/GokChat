@@ -1,5 +1,10 @@
 @echo off
 
+mkdir dist
+cd classfiles
+mkdir Server
+cd ..
+
 echo Compiling files...
 javac -d classfiles\Client src/com/gok/chat/Login.java src/com/gok/chat/Client.java src/com/gok/chat/ClientWindow.java
 cd classfiles\Client\com\gok\chat\
