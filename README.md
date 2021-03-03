@@ -1,23 +1,29 @@
 # GokChat
 
-![Clients Chat Screen](https://i.imgur.com/ijP6z1n.png)
+![Clients Chat Screen](https://i.imgur.com/fSh1XoZ.png)
 
-GokChat is a network chat program which allows multiple users to join and communicate with each other.
+GokChat is a network chat program that allows multiple users to join and communicate with each other.
 
-The Client app uses Swing API for GUI based user interaction which was built with the help of Apache NetBeans GUI designer.
+Along with the ability to handle multiple users, the server-side program also has features like command inputs, server log output and a ping system to determine if users are still connected.
 
-Originally, I decided to make this program to have a better understanding in Java Socket programming and Swing API without creating an overly compilcated program. 
+The Client app is built using Swing API for GUI based user interaction with the help of Apache NetBeans GUI designer. 
+The Client app has:
+* Chat area that displays chat transcripts and some useful information
+* Text input that takes the user's text and command inputs
+* Online users panel that shows which users are online and their IDs
+* Colour selector to change the colour scheme.
+
+Originally, I decided to make this program to have a better understanding of Java Socket programming and Swing API without creating an overly complicated program.
 
 ___
 
 ## More info
 
-* Uses TCP protocol for the communication between client and server.
-* Graphical User Interface (GUI) for the client.
+* TCP protocol for the communication between client and server.
+* GUI is set to undecorated, meaning that the Client app does not display operating system's native title bar and frame.
 * Users can send commands to the server.
 * Informs all users whenever a user joins or leaves the server.
-* Server uses ping system to determine if the connection has been lost with the user.
-* The Client Window displays a list of online users.
+* Users can send Personal Messages (using `/pm` command) to another user using their ID.
 
 ___
 
@@ -38,5 +44,5 @@ ___
     2. Compile the server files using `javac` command located in: `src/com/gok/chat/server/`
         * The main class of the server is `com.gok.chat.server.GokServer`
         * The main class of the client is `com.gok.chat.GokChat`
-    3. Either run the program directly or create .jar files.
+    3. Either run the program from the console or create .jar files.
 
