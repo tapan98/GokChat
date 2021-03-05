@@ -244,27 +244,27 @@ public class Login extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void AddressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddressActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_AddressActionPerformed
 
     private void PanelHeadMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_PanelHeadMousePressed
-        // TODO add your handling code here:
+
         mouseX = evt.getX();
         mouseY = evt.getY();
     }//GEN-LAST:event_PanelHeadMousePressed
 
     private void PanelHeadMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_PanelHeadMouseDragged
-        // TODO add your handling code here:
+
         this.setLocation(this.getX() + evt.getX() - mouseX, this.getY() + evt.getY() - mouseY);
     }//GEN-LAST:event_PanelHeadMouseDragged
 
     private void jLabel5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel5MouseClicked
-        // TODO add your handling code here:
+
         dispose();
     }//GEN-LAST:event_jLabel5MouseClicked
 
     private void LoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LoginActionPerformed
-        // TODO add your handling code here:
+
         
         if (checkConstraints() == 0) {
             
@@ -288,21 +288,21 @@ public class Login extends javax.swing.JFrame {
         client.runClient();
     }
     private void NameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NameActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_NameActionPerformed
 
     private void jLabel5MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel5MousePressed
-        // TODO add your handling code here:
+
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/gok/chat/images/cross_pressed.png")));
     }//GEN-LAST:event_jLabel5MousePressed
 
     private void jLabel5MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel5MouseReleased
-        // TODO add your handling code here:
+
         jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/gok/chat/images/cross.png")));
     }//GEN-LAST:event_jLabel5MouseReleased
 
     private void NameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_NameKeyReleased
-        // TODO add your handling code here:
+
         if ( evt.getKeyCode() == KeyEvent.VK_ENTER ) {
             
             if (checkConstraints() == 0) {
@@ -314,7 +314,7 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_NameKeyReleased
 
     private void AddressKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_AddressKeyReleased
-        // TODO add your handling code here:
+
         if ( evt.getKeyCode() == KeyEvent.VK_ENTER ) {
             
             if (checkConstraints() == 0) {
@@ -325,7 +325,7 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_AddressKeyReleased
 
     private void PortKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_PortKeyReleased
-        // TODO add your handling code here:
+
         if ( evt.getKeyCode() == KeyEvent.VK_ENTER ) {
             
             if (checkConstraints() == 0) {

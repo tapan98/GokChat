@@ -9,18 +9,17 @@ import java.net.Socket;
 
 public class Client {
     
-    final private String username;
-    final private String address;
-    final private int port;
-    private int UID = -1;
+    private String username = null;
+    private String address = null;
+    private int port = 0;
     
-    ClientWindow window;
-    Thread windowThread;
+    ClientWindow window = null;
+    Thread windowThread = null;
     
 
-    private static Socket socket;
-    private static BufferedReader receiver;
-    public static PrintWriter sender;
+    private static Socket socket = null;
+    private static BufferedReader receiver = null;
+    public PrintWriter sender = null;
     boolean connected = false;
     private static Thread serverHandler = null;
     
@@ -45,11 +44,11 @@ public class Client {
      */
     public void runClient() {
     
-        window = new ClientWindow(sender, username);
+        window = new ClientWindow(this);
         windowThread = new Thread(window); // creates window
         windowThread.start(); // displays window
         
-        // try { Thread.sleep(3000); } catch (InterruptedException e) {}
+        // try { Thread.sleep(5000); } catch (InterruptedException e) {}
 
         window.clientMessage("Entering /CHELP displays command help (not for the server)");
         window.clientMessage("Press Ctrl + End on the chat area to resume auto-scroll");
@@ -71,7 +70,7 @@ public class Client {
             window.clientError("Connection failed");
         }
     }
-    
+
     /**
      * Creates server handler object
      * @return serverHandler Thread
@@ -87,15 +86,6 @@ public class Client {
             public void message(String msg) {
 
                 serverResponse(msg);
-            }
-
-            public void send(String msg) {
-
-                if (sender != null && !socket.isClosed()) {
-
-                    sender.println(msg);
-                }
-
             }
 
             public void run() {
@@ -128,6 +118,23 @@ public class Client {
         };
 
         return handle;
+    }
+
+    public int send(String msg) {
+
+        if (sender != null && !socket.isClosed()) {
+
+            sender.println(msg);
+            return 0;
+        }
+
+        return -1;
+    }
+
+    public boolean serverConnected() {
+
+        if ( sender != null && !socket.isClosed() ) return true;
+        else return false;
     }
 
     /**
@@ -205,17 +212,12 @@ public class Client {
 
                 window.clientError("Reply was: " + ack);
                 throw new IOException();
-            } else {
-
-                UID = Integer.parseInt(ack.substring(ack.indexOf(']')+1));
-                window.setUID(UID);
-                //history.append("\nConnected to the server.\n" + receiver.readLine());
             }
 
         } catch (IOException e) {
 
-            window.clientError("Cannot connect to the server using IP: " + address + " Port: " + port);
-            System.err.println("Cannot connect to the server using IP: " + address + " Port: " + port);
+            window.clientError("Cannot connect to the server using IP: " + address + "; Port: " + port);
+            System.err.println("Cannot connect to the server using IP: " + address + "; Port: " + port);
 
             System.err.println(e);
 
@@ -230,7 +232,7 @@ public class Client {
      * tries to interrupt serverHandler and
      * finally tries to close the socket connection
      */
-    public static void closeConnection() {
+    public void closeConnection() {
 
         if (sender != null) {
 

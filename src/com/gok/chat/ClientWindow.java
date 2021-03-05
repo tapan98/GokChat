@@ -3,10 +3,8 @@ package com.gok.chat;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
-import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import javax.swing.text.DefaultCaret;
-
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -19,39 +17,26 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     
     private DefaultCaret caret;
     
-    final private PrintWriter sender;
-    final private String username;
     private DateTimeFormatter timeFormat;
     private LocalDateTime timeNow;
     private boolean timestamp = true;
     private boolean getUsers = true;
-    private int uID = -1;
     private int timeout = 0;
-    
-    // Colors
-    private Color titleBarColor;
-    private Color titleTxtColor;
-    private Color bodyBgColor;
-    private Color componentBgColor;
-    private Color txtColor;
+    private Client server = null;
     
     
     /**
      * Front-end client
-     * @param sender PrintWriter output_handle
-     * @param name username
+     * @param server object reference to call Client methods
      */
-    public ClientWindow(PrintWriter sender, String name) {
+    public ClientWindow(Client server) {
         
-        this.sender = sender;
-        this.username = name;
-        
-        
+        this.server = server;
+
         initComponents();
         
         caret = (DefaultCaret)history.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        
         
         timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
         
@@ -64,89 +49,72 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         
     }
 
-    public void setUID(int UID) {
-    
-        this.uID = UID;
-    }
     
     /**
-     * Sends input value to the server or parses valid client side command.
-     * If the command is unrecognized by the client, it is then sent to the server.
-     * @param msg the input String reference
+     * Appends String msg to the text area with a new line
+     * @param msg the text message to append to the JTextArea (history) component
      */
-    private void send(String msg) {
-
-        if (msg.isEmpty()) {
-            return;
-        } else if (msg.startsWith("/")) {
-
-            parseClientCommands(msg);
-            return;
-
-        }else {     
-            if (Client.sender != null) {
-                Client.sender.println(msg);
-            }
-            else {
-                
-                clientError("No connection to the server.");
-            }
-
-            txtMessage.setText("");
+    public synchronized void println(String msg) {
+    
+        if (timestamp) {
+            timeNow = LocalDateTime.now();
+            history.append("[" + timeFormat.format(timeNow) + "] ");
         }
-
-    }
-    
-    /**
-     * Parses client commands.
-     * If the command is unrecognized, then it is send to the connected server.
-     * @param command the input String reference
-     */
-    private void parseClientCommands(String command) {
-
-        if (command.equalsIgnoreCase("/Q") || command.equalsIgnoreCase("/QUIT")) {
-
-            Client.closeConnection();
-            closeClient();
-
-        } else if (command.equalsIgnoreCase("/TIMESTAMP")) {
-            
-            if (timestamp) timestamp = false;
-            else timestamp = true;
-            
-        } else if ( command.equalsIgnoreCase("/CLEAR") ) {
-            
-            history.setText("");
         
-        } else if( command.equalsIgnoreCase("/CHELP") ) {
-            
-            showHelp();
-            
-        }
-        else { // must be a request for the server
-
-            if (Client.sender != null) {
-                Client.sender.println(command);
-            }
-
-        }
+        history.append(msg + "\n");
     }
     
+
+    /**
+     * Appends Client logs to the history component
+     * @param msg 
+     */
+    public void clientMessage(String msg) {
+
+        println("[CLIENT]: " + msg);
+    }
+
+
+    /**
+     * Appends Error message to the history component
+     * @param msg 
+     */
+    public void clientError(String msg) {
+		
+	    println("[ERROR]: " + msg);
+    }
+    
+    
+    /**
+     * Sets window title
+     * @param title 
+     */
+    public void title(String title) {
+    
+        Title.setText(title);
+        this.setTitle(title);
+    }
+
+
+    /**
+     * Initiates online users query which in turn displays a list of users in GUI component.
+     */
     public void initGetUsers(){
         
+        getUsers = true;
+
         Thread handle = new Thread("GetUser"){
         
             public int sendRequest(){
                 
-                if ( Client.sender != null ){
+                int returnValue = 1;
+
+                returnValue = server.send("[USRS]");
                 
-                    Client.sender.println("[USRS]");
-                    
-                    return 0;
-                } else {
-                    
+                if ( returnValue == -1 )
                     return -1;
-                }
+                
+                return 0;
             }
             
             @Override
@@ -182,12 +150,12 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         
         handle.start();
     }
-    
+
+
     /**
-     * 
+     * Updates the Users list in the online users GUI component.
      * @param users Semicolon separated list of Users
      */
-    
     public void setUsersList(String users) {
         
         timeout = 0;
@@ -199,7 +167,126 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
             UsersList.setListData(usersArr);
         }
     }
+
+
+    /**
+     * Sends input value to the server or parses valid client side command.
+     * If the command is unrecognized by the client, it is then sent to the server.
+     * Note: The command is recognized by a beginning character '/' forward slash
+     * @param msg the input String reference
+     */
+    private void send(String msg) {
+
+        if (msg.isEmpty()) {
+            return;
+        } else if (msg.startsWith("/")) {
+
+            parseClientCommands(msg);
+            return;
+
+        }else {     
+
+            int returnValue = 1;
+            returnValue = server.send(msg);
+            if ( returnValue == -1 ) {
+                
+                clientError("No connection to the server.");
+            }
+
+            txtMessage.setText("");
+        }
+
+    }
+
+
+    /**
+     * Parses client commands.
+     * If the command is unrecognized, then it is send to the connected server.
+     * @param command the input String reference
+     */
+    private void parseClientCommands(String command) {
+
+        if (command.equalsIgnoreCase("/Q") || command.equalsIgnoreCase("/QUIT")) {
+
+            server.closeConnection();
+            closeClient();
+
+        } else if (command.equalsIgnoreCase("/TIMESTAMP")) {
+            
+            if (timestamp) timestamp = false;
+            else timestamp = true;
+            
+        } else if ( command.equalsIgnoreCase("/CLEAR") ) {
+            
+            history.setText("");
+        
+        } else if( command.equalsIgnoreCase("/CHELP") ) {
+            
+            showHelp();
+            
+        }
+        else { // must be a request for the server
+
+            if ( server.send(command) == -1 ) {
+                
+                clientError("No connection to the server.");
+            }
+
+        }
+    }
     
+    private void setColorScheme(){
+        
+        try {
+        
+            // Title Bar Color
+            PanelHead.setBackground(Color.decode(titleBarColTxtField.getText()));
+
+            // Title Bar Text Color
+            Title.setForeground(Color.decode(titleBarTextColTxtField.getText()));
+
+            // Body Panel Background Color
+            PanelBody.setBackground(Color.decode(bodyBgColTxtField.getText()));
+
+            // Components Background Color
+            history.setBackground(Color.decode(componentBgColTxtField.getText()));
+            txtMessage.setBackground(Color.decode(componentBgColTxtField.getText()));
+            UsersList.setBackground(Color.decode(componentBgColTxtField.getText()));
+            titleBarColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
+            titleBarTextColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
+            bodyBgColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
+            componentBgColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
+            textColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
+            buttonBgColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
+
+
+            // Text Color
+            history.setForeground(Color.decode(textColTxtField.getText()));
+            txtMessage.setForeground(Color.decode(textColTxtField.getText()));
+            UsersList.setForeground(Color.decode(textColTxtField.getText()));
+            titleBarColTxtField.setForeground(Color.decode(textColTxtField.getText()));
+            titleBarTextColTxtField.setForeground(Color.decode(textColTxtField.getText()));
+            bodyBgColTxtField.setForeground(Color.decode(textColTxtField.getText()));
+            componentBgColTxtField.setForeground(Color.decode(textColTxtField.getText()));
+            textColTxtField.setForeground(Color.decode(textColTxtField.getText()));
+            buttonBgColTxtField.setForeground(Color.decode(textColTxtField.getText()));
+            btnSend.setForeground(Color.decode(textColTxtField.getText()));
+            btnSetDefaultCol.setForeground(Color.decode(textColTxtField.getText()));
+            btnSetColors.setForeground(Color.decode(textColTxtField.getText()));
+
+            
+            // Button Background Color
+            btnSend.setBackground(Color.decode(buttonBgColTxtField.getText()));
+            btnSetDefaultCol.setBackground(Color.decode(buttonBgColTxtField.getText()));
+            btnSetColors.setBackground(Color.decode(buttonBgColTxtField.getText()));
+        
+        } catch (NumberFormatException e) {
+            
+            clientError("Invalid Color Code!");
+        }
+    }
+    
+    // auto-generated!
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -334,11 +421,6 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         btnSend.setBackground(new java.awt.Color(51, 56, 66));
         btnSend.setForeground(new java.awt.Color(255, 255, 255));
         btnSend.setText("Send");
-        btnSend.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnSendMouseClicked(evt);
-            }
-        });
         btnSend.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSendActionPerformed(evt);
@@ -362,6 +444,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         titleBarColTxtField.setForeground(new java.awt.Color(255, 255, 255));
         titleBarColTxtField.setText("#D1303D");
         titleBarColTxtField.setToolTipText("");
+        titleBarColTxtField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                titleBarColTxtFieldActionPerformed(evt);
+            }
+        });
 
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Title Bar Text Color:");
@@ -426,11 +513,6 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         btnSetColors.setBackground(new java.awt.Color(51, 56, 66));
         btnSetColors.setForeground(new java.awt.Color(255, 255, 255));
         btnSetColors.setText("Set Colors");
-        btnSetColors.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnSetColorsMouseClicked(evt);
-            }
-        });
         btnSetColors.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSetColorsActionPerformed(evt);
@@ -440,11 +522,6 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         btnSetDefaultCol.setBackground(new java.awt.Color(51, 56, 66));
         btnSetDefaultCol.setForeground(new java.awt.Color(255, 255, 255));
         btnSetDefaultCol.setText("Set Default Colors");
-        btnSetDefaultCol.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnSetDefaultColMouseClicked(evt);
-            }
-        });
         btnSetDefaultCol.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSetDefaultColActionPerformed(evt);
@@ -562,118 +639,68 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jLabel1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel1MouseClicked
-        // TODO add your handling code here:
+
         closeClient();
     }//GEN-LAST:event_jLabel1MouseClicked
 
     private void PanelHeadMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_PanelHeadMousePressed
-        // TODO add your handling code here:
+
         mouseX = evt.getX();
         mouseY = evt.getY();
     }//GEN-LAST:event_PanelHeadMousePressed
 
     private void PanelHeadMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_PanelHeadMouseDragged
-        // TODO add your handling code here:
+
         this.setLocation(this.getX() + evt.getX() - mouseX, this.getY() + evt.getY() - mouseY);
     }//GEN-LAST:event_PanelHeadMouseDragged
 
     private void jLabel1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel1MousePressed
-        // TODO add your handling code here:
+
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/gok/chat/images/cross_pressed.png")));
     }//GEN-LAST:event_jLabel1MousePressed
 
     private void jLabel1MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel1MouseReleased
-        // TODO add your handling code here:
+
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/gok/chat/images/cross.png")));
     }//GEN-LAST:event_jLabel1MouseReleased
 
     private void btnSetColorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSetColorsActionPerformed
-        // TODO add your handling code here:
-        
-        try {
-        
-            // Title Bar Color
-            PanelHead.setBackground(Color.decode(titleBarColTxtField.getText()));
 
-            // Title Bar Text Color
-            Title.setForeground(Color.decode(titleBarTextColTxtField.getText()));
-
-            // Body Panel Background Color
-            PanelBody.setBackground(Color.decode(bodyBgColTxtField.getText()));
-
-            // Components Background Color
-            history.setBackground(Color.decode(componentBgColTxtField.getText()));
-            txtMessage.setBackground(Color.decode(componentBgColTxtField.getText()));
-            UsersList.setBackground(Color.decode(componentBgColTxtField.getText()));
-            titleBarColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
-            titleBarTextColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
-            bodyBgColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
-            componentBgColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
-            textColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
-            buttonBgColTxtField.setBackground(Color.decode(componentBgColTxtField.getText()));
-
-
-            // Text Color
-            history.setForeground(Color.decode(textColTxtField.getText()));
-            txtMessage.setForeground(Color.decode(textColTxtField.getText()));
-            UsersList.setForeground(Color.decode(textColTxtField.getText()));
-            titleBarColTxtField.setForeground(Color.decode(textColTxtField.getText()));
-            titleBarTextColTxtField.setForeground(Color.decode(textColTxtField.getText()));
-            bodyBgColTxtField.setForeground(Color.decode(textColTxtField.getText()));
-            componentBgColTxtField.setForeground(Color.decode(textColTxtField.getText()));
-            textColTxtField.setForeground(Color.decode(textColTxtField.getText()));
-            buttonBgColTxtField.setForeground(Color.decode(textColTxtField.getText()));
-            btnSend.setForeground(Color.decode(textColTxtField.getText()));
-            btnSetDefaultCol.setForeground(Color.decode(textColTxtField.getText()));
-            btnSetColors.setForeground(Color.decode(textColTxtField.getText()));
-
-            
-            // Button Background Color
-            btnSend.setBackground(Color.decode(buttonBgColTxtField.getText()));
-            btnSetDefaultCol.setBackground(Color.decode(buttonBgColTxtField.getText()));
-            btnSetColors.setBackground(Color.decode(buttonBgColTxtField.getText()));
-        
-        } catch (NumberFormatException e) {
-            
-            clientError("Invalid Color Code!");
-        }
+        setColorScheme();
     }//GEN-LAST:event_btnSetColorsActionPerformed
 
-    private void btnSetColorsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSetColorsMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnSetColorsMouseClicked
-
     private void buttonBgColTxtFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonBgColTxtFieldActionPerformed
-        // TODO add your handling code here:
+
+        setColorScheme();
     }//GEN-LAST:event_buttonBgColTxtFieldActionPerformed
 
     private void textColTxtFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textColTxtFieldActionPerformed
-        // TODO add your handling code here:
+
+        setColorScheme();
     }//GEN-LAST:event_textColTxtFieldActionPerformed
 
     private void componentBgColTxtFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_componentBgColTxtFieldActionPerformed
-        // TODO add your handling code here:
+
+        setColorScheme();
     }//GEN-LAST:event_componentBgColTxtFieldActionPerformed
 
     private void bodyBgColTxtFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bodyBgColTxtFieldActionPerformed
-        // TODO add your handling code here:
+
+        setColorScheme();
     }//GEN-LAST:event_bodyBgColTxtFieldActionPerformed
 
     private void titleBarTextColTxtFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_titleBarTextColTxtFieldActionPerformed
-        // TODO add your handling code here:
+
+        setColorScheme();
     }//GEN-LAST:event_titleBarTextColTxtFieldActionPerformed
 
     private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
-        // TODO add your handling code here:
+
+        send(txtMessage.getText());
     }//GEN-LAST:event_btnSendActionPerformed
 
-    private void btnSendMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSendMouseClicked
-        // TODO add your handling code here:
-        send(txtMessage.getText());
-    }//GEN-LAST:event_btnSendMouseClicked
-
     private void txtMessageKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtMessageKeyPressed
-        // TODO add your handling code here:
+
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
 
             send(txtMessage.getText());
@@ -682,7 +709,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     }//GEN-LAST:event_txtMessageKeyPressed
 
     private void historyKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_historyKeyPressed
-        // TODO add your handling code here:
+
         char key = evt.getKeyChar();
 
         if ( (key >= 'A' && key <= 'Z') || (key >= 'a' && key <= 'z') || (key >= '0' && key <='9') || key == '/' ) {
@@ -696,12 +723,8 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         }
     }//GEN-LAST:event_historyKeyPressed
 
-    private void btnSetDefaultColMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSetDefaultColMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnSetDefaultColMouseClicked
-
     private void btnSetDefaultColActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSetDefaultColActionPerformed
-        // TODO add your handling code here:
+
         
         // Title Bar Color
         PanelHead.setBackground(Color.decode("#D1303D"));
@@ -751,40 +774,11 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         
     }//GEN-LAST:event_btnSetDefaultColActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-//    public static void main(String args[]) {
-//        /* Set the Nimbus look and feel */
-//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-//         */
-//        try {
-//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-//                if ("Nimbus".equals(info.getName())) {
-//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-//                    break;
-//                }
-//            }
-//        } catch (ClassNotFoundException ex) {
-//            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (InstantiationException ex) {
-//            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (IllegalAccessException ex) {
-//            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-//            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        //</editor-fold>
-//
-//        /* Create and display the form */
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-//            public void run() {
-//                new ClientWindow().setVisible(true);
-//            }
-//        });
-//    }
+    private void titleBarColTxtFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_titleBarColTxtFieldActionPerformed
+
+        setColorScheme();
+    }//GEN-LAST:event_titleBarColTxtFieldActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel LabelOnlineUsers;
@@ -817,7 +811,7 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
     private javax.swing.JTextField txtMessage;
     // End of variables declaration//GEN-END:variables
 
-    public void showHelp(){
+    private void showHelp(){
         
         clientMessage("Help is here!");
         clientMessage("/CHELP: Displays this help.");
@@ -826,74 +820,14 @@ public class ClientWindow extends javax.swing.JFrame implements Runnable {
         clientMessage("/TIMESTAMP: Toggles timestamp.");
     }
     
-    /**
-     * Appends Client logs to the history component
-     * @param msg 
-     */
-    public void clientMessage(String msg) {
-	
-        println("[CLIENT]: " + msg);
-    }
-    
-    /**
-     * Appends Error message to the history component
-     * @param msg 
-     */
-    public void clientError(String msg) {
-		
-	println("[ERROR]: " + msg);
-    }
-
-    /**
-     * Appends String to the history component
-     * @param msg 
-     */
-    public void messageAppend(String msg) {
-        
-        
-        //history.append(msg);
-        println(msg);
-    }
     
     /**
      * closes Socket and terminates program by calling System.exit(0);
      */
     private void closeClient() {
         
-        Client.closeConnection();
+        server.closeConnection();
         System.exit(0);
     }
-    
-    /**
-     * Appends String msg to the text area with a new line
-     * @param msg 
-     */
-    public synchronized void println(String msg) {
-    
-        if (timestamp) {
-            timeNow = LocalDateTime.now();
-            history.append("[" + timeFormat.format(timeNow) + "] ");
-        }
-        
-        history.append(msg + "\n");
-    }
-    
-    /**
-     * Sets window title
-     * @param title 
-     */
-    public void title(String title) {
-    
-        Title.setText(title);
-        this.setTitle(title);
-    }
-    
-    /**
-     * Sets ClientWindow Input text box String
-     * @param txt 
-     */
-    public void setTextBoxText(String txt) {
-        
-        this.txtMessage.setText(txt);
-    }
+
 }
