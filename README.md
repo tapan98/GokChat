@@ -30,6 +30,7 @@ ___
 ## Requirements
 
 * [JDK 11](https://www.oracle.com/in/java/technologies/javase-jdk11-downloads.html)
+* Apache NetBeans IDE
 
 ___
 
